@@ -1,4 +1,4 @@
-NAME = bureaucrat
+NAME = form
 
 CXX = c++
 
@@ -10,7 +10,7 @@ SRCS = main.cpp \
 OBJDIR = objects
 OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
 
-DEPS = Bureaucrat.hpp
+DEPS = Bureaucrat.hpp \
 	   Colors.hpp
 
 all: $(NAME)
