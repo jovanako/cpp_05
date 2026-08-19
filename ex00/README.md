@@ -35,7 +35,7 @@ The core method provided by `std::exception` is `what()`.
 
 `virtual const char* what() const throw();`
 
--	Purpose: Returns a null-terminated C-string (const char*) that describes the error.
+-	Purpose: Returns a null-terminated C-string (`const char*`) that describes the error.
 -	`const`: Calling `what()` does not modify the exception object.
 -	`throw()`: Guarantees that `what()` itself will never throw an exception while 
 	reporting an error.
@@ -148,3 +148,56 @@ GradeTooLowException();
 ```
 
 - With `throw`: You trigger the C++ exception-handling mechanism using that object as the error details.
+
+# Why Copy Assignment Operator copies only `_grade` and not `_name`
+
+## 1. `const` Variables Cannot Be Reassigned
+
+In C++, a variable marked `const` is strictly read-only once constructed. The copy assignment operator (`operator=`) is called on an object that **already exists in memory**:
+
+```
+Bureaucrat a("Alice", 10);
+Bureaucrat b("Bob", 50);
+
+a=b; // 'a' already exists; its '_name' is already "Alice"
+``` 
+
+If you try to write:
+
+`this->_name = other._name; // COMPILATION ERROR`
+
+The compiler will reject the code because `std::string::operator=` cannot be invoked on a `const` object.
+
+## 2. Constructors vs. Assignment Operator
+
+- **In Constructors (and Copy Constructor)**: The object is being created for the first time. You can initialize `_name` using the **member initializer list** (`: _name(other._name)`).
+
+- **In Assignment Operator** (`operator=`): The object is already fully constructed. You are modifying existing values, so `const` members cannot be changed.
+
+## 3. The Conceptual Meaning in the Exercise
+
+From the design perspective, a `Bureaucrat` represents an individual whose **identity** (`_name`) **is fixed for life**, while their **rank** (`_grade`) **can change**. When you assign one bureaucrat to another, you are copying their status/grade, not overriding their personal identity.
+
+
+# Why is `what()` defined in the `.hpp` file?
+
+## 1. Header-only Exception Inline Definition
+
+In C++, methods whose implementations are written directly inside the class definition (inside the `.hpp` file) are **automatically treated as** `inline` **functions** by the compiler.
+
+Because `what()` in this context is extremely simple - it just returns a hardcoded string literal - inlining it allows the compiler to insert that string pointer directly where called, avoiding the minor overhead of a function call.
+
+## 2. Avoiding Linker Redundancy (ODR Compliance)
+
+If you declare a function in a header without `inline` or without implementing it inside the class body, and then put its definition in a `.cpp` file, you must compile and link that `.cpp` file.
+
+When defined inside the `.hpp` class body, multiple `.cpp` files can `#include "Bureaucrat.hpp"` without violating the **One Definition Rule(ODR)**, because inline functions defined inside class bodies are explicitly permitted across translation units.
+
+## 3. C++ Module 05 Exception Exemption
+
+The C++ Module 05 specification explicitly states:
+
+>"Please note that exception classes do not have to be designed in Orthodox Canonical Form."
+
+While standard classes in the 42 curriculum generally mandate separating declarations (`.hpp`) from implementations (`.cpp`), exception classes are specifically granted an exemption.  
+Keeping lightweight, self-contained exception classes entirely in the header is standard C++ practice because it keeps error definitions self-contained and clean.
