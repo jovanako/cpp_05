@@ -7,14 +7,16 @@ Bureaucrat::Bureaucrat() : _name("Unknown"), _grade(150) {
 		throw Bureaucrat::GradeTooLowException();
 }
 
-Bureaucrat::Bureaucrat(std::string const & name, int grade) : _name(name), _grade(grade) {
+Bureaucrat::Bureaucrat(std::string const & name, int grade)
+	: _name(name), _grade(grade) {
 	if (grade < 1)
 		throw Bureaucrat::GradeTooHighException();
 	if (grade > 150)
 		throw Bureaucrat::GradeTooLowException();
 }
 
-Bureaucrat::Bureaucrat(const Bureaucrat& other) : _name(other._name), _grade(other._grade) {}
+Bureaucrat::Bureaucrat(const Bureaucrat& other)
+	: _name(other._name), _grade(other._grade) {}
 
 Bureaucrat & Bureaucrat::operator=(const Bureaucrat& other) {
 	if (this != &other)
